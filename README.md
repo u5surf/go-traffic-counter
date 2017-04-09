@@ -4,7 +4,7 @@
 Byte counter to transffering huge file with unix domain socket.
 
 ## Demo
-$go build -o server server.go
+$go build -o server
 
 $./server 
 
