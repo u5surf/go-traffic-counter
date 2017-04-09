@@ -1,4 +1,4 @@
-# golang-sample-echo-server
+# golang-byte-counter
 
 ## Description 
 Byte counter to transffering huge file with unix domain socket.
