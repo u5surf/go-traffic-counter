@@ -10,9 +10,11 @@ type Server struct {
   listener net.Listener
 }
 
+var total = 0
+
 func NewServer() *Server{
   s := new(Server)
-  return s;
+  return s
 }
 
 func (s *Server) Open(socket string) error {
@@ -37,7 +39,7 @@ func (s *Server) Close() error{
 
 func (s *Server) Start() {
   ch := make(chan int)
-  var cid = 0
+  cid := 0
   go Amount(ch)
   for {
     fd, err := s.listener.Accept()
@@ -50,9 +52,8 @@ func (s *Server) Start() {
 }
 
 func Amount(ch chan int){
-  var total = 0
   for{
-    total = total + <-ch
+    total += <-ch
   }
 }
 func (s *Server) Process(fd net.Conn,cid int,ch chan int) error{
@@ -73,7 +74,6 @@ func (s *Server) Process(fd net.Conn,cid int,ch chan int) error{
       return err
     }*/
   }
-
-  fmt.Printf("%d end\n",cid)
+  fmt.Printf("%d end:len %d,total %d\n",cid,length,total)
   return nil
 }
