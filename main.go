@@ -37,7 +37,6 @@ func main() {
   }
   go Startlogger(msg)
   registerShutdown(server)
-  fmt.Printf("GOLANG_SAMPLE_SOCK=%s\n",os.Getenv("GOLANG_SAMPLE_SOCK"))
   fmt.Printf("GOLANG_SAMPLE_SOCK=%v;export GOLANG_SAMPLE_SOCK;\n", socket)
   fmt.Printf("GOLANG_SAMPLE_PID=%v;export GOLANG_SAMPLE_PID;\n", pid)
   server.Start(msg)
