@@ -3,7 +3,8 @@ package main
 import (
   "net"
   "os"
-  "fmt"
+  "strconv"
+  "time"
 )
 
 type Server struct {
@@ -37,7 +38,7 @@ func (s *Server) Close() error{
   return nil
 }
 
-func (s *Server) Start() {
+func (s *Server) Start(log chan string) {
   ch := make(chan int)
   cid := 0
   go Amount(ch)
@@ -47,7 +48,7 @@ func (s *Server) Start() {
       break;
     }
     cid = cid + 1
-    go s.Process(fd,cid,ch)
+    go s.Process(fd,cid,ch,log)
   }
 }
 
@@ -56,7 +57,7 @@ func Amount(ch chan int){
     total += <-ch
   }
 }
-func (s *Server) Process(fd net.Conn,cid int,ch chan int) error{
+func (s *Server) Process(fd net.Conn,cid int,ch chan int,log chan string) error{
   var length = 0
   defer fd.Close()
   for {
@@ -74,6 +75,6 @@ func (s *Server) Process(fd net.Conn,cid int,ch chan int) error{
       return err
     }*/
   }
-  fmt.Printf("%d end:len %d,total %d\n",cid,length,total)
+  log <- strconv.FormatInt(time.Now().Unix(),10)+","+strconv.Itoa(cid)+","+strconv.Itoa(length)+","+strconv.Itoa(total)
   return nil
 }

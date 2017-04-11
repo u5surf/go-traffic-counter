@@ -8,15 +8,17 @@ import (
   "syscall"
   "strconv"
   "log"
+  "log/syslog"
 )
 
 func main() {
   log.SetFlags(log.Lshortfile)
-  tempDir, err := ioutil.TempDir("", "golang-sample-echo-server.")
+  tempDir, err := ioutil.TempDir("", "counter-socket.")
   if err != nil {
     log.Printf("error: %v\n", err)
     return
   }
+  msg := make(chan string)
   pid := strconv.Itoa(os.Getpid())
   socket := tempDir + "/server." + pid
   if err := os.Chmod(tempDir, 0700); err != nil {
@@ -33,10 +35,12 @@ func main() {
     log.Printf("error: %v\n", err)
     return;
   }
+  go Startlogger(msg)
   registerShutdown(server)
+  fmt.Printf("GOLANG_SAMPLE_SOCK=%s\n",os.Getenv("GOLANG_SAMPLE_SOCK"))
   fmt.Printf("GOLANG_SAMPLE_SOCK=%v;export GOLANG_SAMPLE_SOCK;\n", socket)
   fmt.Printf("GOLANG_SAMPLE_PID=%v;export GOLANG_SAMPLE_PID;\n", pid)
-  server.Start();
+  server.Start(msg)
 }
 
 func registerShutdown(server *Server) {
@@ -61,3 +65,12 @@ func registerShutdown(server *Server) {
     }
   }()
 }
+
+func Startlogger(msg chan string){
+  logger,_ := syslog.New(syslog.LOG_NOTICE|syslog.LOG_USER, "my-daemon")
+  log.SetOutput(logger)
+  for{
+     log.Println(<-msg)
+  }
+}
+
