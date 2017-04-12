@@ -14,7 +14,6 @@ type Server struct {
 
 var total int
 var mu sync.Mutex
-var wg sync.WaitGroup
 
 func NewServer() *Server{
   s := new(Server)
@@ -57,18 +56,18 @@ func (s *Server) Start(log chan string) {
 func (s *Server) Process(fd net.Conn,cid int,log chan string) error{
   var length = 0
   defer fd.Close()
-  Writelog("start",cid,length,log)
+  go Writelog("start",cid,length,log)
   for {
-    buf := make([]byte,512)
+    buf := make([]byte,4096)
     nr, err := fd.Read(buf)
     if err != nil {
       break
     }
     data := buf[0:nr]
     length += len(data)
-    Amount(len(data))
+    go Amount(len(data))
   }
-  Writelog("exit",cid,length,log)
+  go Writelog("exit",cid,length,log)
   return nil
 }
 
