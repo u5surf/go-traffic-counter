@@ -1,2 +1,4 @@
 #!/bin/sh
-nc -U $1 < $2 > /dev/null
+for i in 'seq 1 10' ; do
+  nc -U $1 < $2 > /dev/null &
+done

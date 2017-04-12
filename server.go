@@ -4,6 +4,7 @@ import (
   "net"
   "os"
   "strconv"
+  "sync"
   "time"
 )
 
@@ -11,7 +12,9 @@ type Server struct {
   listener net.Listener
 }
 
-var total = 0
+var total int
+var mu sync.Mutex
+var wg sync.WaitGroup
 
 func NewServer() *Server{
   s := new(Server)
@@ -39,27 +42,22 @@ func (s *Server) Close() error{
 }
 
 func (s *Server) Start(log chan string) {
-  ch := make(chan int)
+  mu = sync.Mutex{}
   cid := 0
-  go Amount(ch)
   for {
     fd, err := s.listener.Accept()
     if err != nil {
       break;
     }
     cid = cid + 1
-    go s.Process(fd,cid,ch,log)
+    go s.Process(fd,cid,log)
   }
 }
 
-func Amount(ch chan int){
-  for{
-    total += <-ch
-  }
-}
-func (s *Server) Process(fd net.Conn,cid int,ch chan int,log chan string) error{
+func (s *Server) Process(fd net.Conn,cid int,log chan string) error{
   var length = 0
   defer fd.Close()
+  Writelog("start",cid,length,log)
   for {
     buf := make([]byte,512)
     nr, err := fd.Read(buf)
@@ -68,13 +66,20 @@ func (s *Server) Process(fd net.Conn,cid int,ch chan int,log chan string) error{
     }
     data := buf[0:nr]
     length += len(data)
-    ch <- len(data)
-    //fmt.Printf("Recieved: %v", string(data));
-    /*_, err = fd.Write(data)
-    if err != nil {
-      return err
-    }*/
+    Amount(len(data))
   }
-  log <- strconv.FormatInt(time.Now().Unix(),10)+","+strconv.Itoa(cid)+","+strconv.Itoa(length)+","+strconv.Itoa(total)
+  Writelog("exit",cid,length,log)
   return nil
+}
+
+func Amount(len int){
+    mu.Lock()
+    defer mu.Unlock()
+    total +=len
+}
+
+func Writelog(status string,cid int,length int,log chan string){
+  mu.Lock()
+  defer mu.Unlock()
+  log <- strconv.FormatInt(time.Now().Unix(),10)+","+status+","+strconv.Itoa(cid)+","+strconv.Itoa(length)+","+strconv.Itoa(total) 
 }
