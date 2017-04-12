@@ -73,8 +73,8 @@ func (s *Server) Process(fd net.Conn,cid int,log chan string) error{
 
 func Amount(len int){
     mu.Lock()
-    defer mu.Unlock()
     total +=len
+    mu.Unlock()
 }
 
 func Writelog(status string,cid int,length int,log chan string){
