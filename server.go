@@ -57,8 +57,8 @@ func (s *Server) Process(fd net.Conn,cid int,log chan string) error{
   var length = 0
   defer fd.Close()
   go Writelog("start",cid,length,log)
+  buf := make([]byte,4096)
   for {
-    buf := make([]byte,4096)
     nr, err := fd.Read(buf)
     if err != nil {
       break
